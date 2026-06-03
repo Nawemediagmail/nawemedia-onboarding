@@ -5,14 +5,14 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
     
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
     if (!url || !key) {
-      console.error("Missing environment variables: URL or SERVICE_ROLE_KEY");
+      console.error(`[Env Error] URL: ${!!url}, KEY: ${!!key}`);
       return NextResponse.json({ 
         error: "Configuración del servidor incompleta. Por favor, contacte con el administrador.",
-        debug: `Missing Env Vars. URL present: ${!!url}, KEY present: ${!!key}.` 
+        debug: "Missing Env Vars in process.env" 
       }, { status: 500 });
     }
 
