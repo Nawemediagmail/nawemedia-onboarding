@@ -14,10 +14,15 @@ export default function OnboardingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Submission failed");
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Hubo un error al enviar la solicitud.");
+      }
+      
       setSubmitted(true);
-    } catch (err) {
-      alert("Hubo un error al enviar la solicitud. Por favor intenta de nuevo.");
+    } catch (err: any) {
+      alert(err.message || "Hubo un error al enviar la solicitud. Por favor intenta de nuevo.");
     }
   }
 
