@@ -17,7 +17,10 @@ export default function OnboardingPage() {
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Hubo un error al enviar la solicitud.");
+        const detailedError = errorData.debug 
+          ? `${errorData.error}\n\nDetalles técnicos: ${errorData.debug}`
+          : (errorData.error || "Hubo un error al enviar la solicitud.");
+        throw new Error(detailedError);
       }
       
       setSubmitted(true);

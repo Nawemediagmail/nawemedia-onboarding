@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       console.error("Missing environment variables: URL or SERVICE_ROLE_KEY");
       return NextResponse.json({ 
         error: "Configuración del servidor incompleta. Por favor, contacte con el administrador.",
-        debug: "Missing Env Vars" 
+        debug: `Missing Env Vars. URL present: ${!!url}, KEY present: ${!!key}.` 
       }, { status: 500 });
     }
 
