@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
     const data = await req.json();
     
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    const supabase = getSupabaseAdmin();
 
-    if (!url || !key) {
-      console.error(`[Env Error] URL: ${!!url}, KEY: ${!!key}`);
+    if (!supabase) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      console.error(`[Env Error] URL present: ${!!url}, KEY present: ${!!key}`);
       return NextResponse.json({ 
-        error: "Configuración del servidor incompleta. Por favor, contacte con el administrador.",
-        debug: "Missing Env Vars in process.env" 
+        error: "Configuración del servidor incompleta o llaves inválidas. Por favor, contacte con el administrador.",
+        debug: `supabase is null. URL length: ${url ? url.length : 0}, KEY length: ${key ? key.length : 0}` 
       }, { status: 500 });
     }
-
-    const supabase = createClient(url, key);
 
     const { error } = await supabase
       .from("onboarding_submissions")
@@ -41,4 +40,3 @@ export async function POST(req: Request) {
     }, { status: 500 });
   }
 }
-
