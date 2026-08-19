@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import OnboardingForm, { FormState } from "@/components/OnboardingForm";
+import OnboardingForm, { FormState, clearSavedDraft } from "@/components/OnboardingForm";
 import { supabase, uploadOnboardingFile, uploadOnboardingFiles } from "@/lib/supabase";
 
 export default function Home() {
@@ -58,6 +58,7 @@ export default function Home() {
 
       if (insertError) throw new Error(insertError.message);
 
+      clearSavedDraft();
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message || "Error al enviar");

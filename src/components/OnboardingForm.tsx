@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CheckCircle2,
   Upload,
@@ -112,9 +112,64 @@ const initialState: FormState = {
 
 const TOTAL_STEPS = 9;
 
+// Files can't be serialized into localStorage (and can't be restored after a
+// reload without the user re-picking them from disk), so only the text
+// fields are persisted.
+const FILE_KEYS = [
+  "heroPhoto",
+  "bioPhoto",
+  "logoBlack",
+  "logoColor",
+  "riderFile",
+  "galleryLifestyle",
+  "galleryPrensa",
+  "galleryShows",
+] as const;
+
+const STORAGE_KEY = "nawemedia-onboarding-draft";
+
+type PersistedDraft = { step: number; data: Partial<FormState> };
+
+function loadDraft(): PersistedDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || typeof parsed.step !== "number") return null;
+    return parsed as PersistedDraft;
+  } catch {
+    return null;
+  }
+}
+
+export function clearSavedDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* localStorage puede estar deshabilitado (modo privado, cuotas, etc.) */
+  }
+}
+
 export default function OnboardingForm({ onSubmit, onLoading }: OnboardingFormProps) {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<FormState>(initialState);
+  const initialDraft = typeof window !== "undefined" ? loadDraft() : null;
+  const [step, setStep] = useState(initialDraft?.step ?? 1);
+  const [formData, setFormData] = useState<FormState>(
+    initialDraft ? { ...initialState, ...initialDraft.data } : initialState
+  );
+  const [restoredDraft] = useState(!!initialDraft);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const dataToSave: Partial<FormState> = { ...formData };
+    FILE_KEYS.forEach((key) => delete dataToSave[key]);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: dataToSave }));
+    } catch {
+      /* localStorage puede estar deshabilitado (modo privado, cuotas, etc.) */
+    }
+  }, [formData, step]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -159,6 +214,11 @@ export default function OnboardingForm({ onSubmit, onLoading }: OnboardingFormPr
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4 sm:p-6">
+      {restoredDraft && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-sm text-center">
+          Recuperamos tu progreso anterior. Si habías subido fotos, logo o rider, tenés que volver a adjuntarlos: los archivos no se guardan en el navegador.
+        </div>
+      )}
       {/* Progress Header */}
       <div className="mb-8 text-center">
         <div className="flex justify-between items-end mb-2">
