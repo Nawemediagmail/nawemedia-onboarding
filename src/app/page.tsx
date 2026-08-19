@@ -1,27 +1,63 @@
 "use client";
 
 import { useState } from "react";
-import OnboardingForm from "@/components/OnboardingForm";
+import OnboardingForm, { FormState } from "@/components/OnboardingForm";
+import { supabase, uploadOnboardingFile, uploadOnboardingFiles } from "@/lib/supabase";
 
 export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (formData: Record<string, string>) => {
+  const handleSubmit = async (formData: FormState) => {
     setError(null);
     try {
-      const res = await fetch("/api/submit-onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-    
-      if (!res.ok) {
-        const { error } = await res.json();
-        throw new Error(error || "Error al enviar");
-      }
-    
+      const {
+        heroPhoto,
+        bioPhoto,
+        logoBlack,
+        logoColor,
+        riderFile,
+        galleryLifestyle,
+        galleryPrensa,
+        galleryShows,
+        ...rest
+      } = formData;
+
+      const [heroPhotoUrl, bioPhotoUrl, logoBlackUrl, logoColorUrl, riderUrl] = await Promise.all([
+        heroPhoto ? uploadOnboardingFile(heroPhoto, formData.artistName, "photos") : Promise.resolve(""),
+        bioPhoto ? uploadOnboardingFile(bioPhoto, formData.artistName, "photos") : Promise.resolve(""),
+        logoBlack ? uploadOnboardingFile(logoBlack, formData.artistName, "logos") : Promise.resolve(""),
+        logoColor ? uploadOnboardingFile(logoColor, formData.artistName, "logos") : Promise.resolve(""),
+        riderFile ? uploadOnboardingFile(riderFile, formData.artistName, "presskit") : Promise.resolve(""),
+      ]);
+
+      const [lifestyleUrls, prensaUrls, showsUrls] = await Promise.all([
+        uploadOnboardingFiles(galleryLifestyle, formData.artistName, "gallery/lifestyle"),
+        uploadOnboardingFiles(galleryPrensa, formData.artistName, "gallery/prensa"),
+        uploadOnboardingFiles(galleryShows, formData.artistName, "gallery/shows"),
+      ]);
+
+      const payload = {
+        ...rest,
+        heroPhotoUrl,
+        bioPhotoUrl,
+        logoBlackUrl,
+        logoColorUrl,
+        riderUrl,
+        gallery: {
+          lifestyle: lifestyleUrls,
+          prensa: prensaUrls,
+          shows: showsUrls,
+        },
+      };
+
+      const { error: insertError } = await supabase
+        .from("onboarding_submissions")
+        .insert([{ data: payload }]);
+
+      if (insertError) throw new Error(insertError.message);
+
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message || "Error al enviar");

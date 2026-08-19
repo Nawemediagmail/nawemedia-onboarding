@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SOFIFITVIBES DJ - Official EPK",
-  description: "Official EPK for SOFIFITVIBES DJ. Afro House, Tribal and Circuit DJ based in Hamburg, Germany.",
+  title: "NAWEMEDIA · Formulario de Onboarding DJ",
+  description: "Completá tus datos y material para que NAWEMEDIA construya tu Electronic Press Kit.",
   openGraph: {
-    title: "SOFIFITVIBES DJ - Official EPK",
-    description: "Afro House · Tribal · Circuit",
+    title: "NAWEMEDIA · Formulario de Onboarding DJ",
+    description: "Completá tus datos y material para que NAWEMEDIA construya tu Electronic Press Kit.",
     type: "website",
   },
 };
