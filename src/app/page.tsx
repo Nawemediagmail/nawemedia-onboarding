@@ -60,6 +60,19 @@ export default function Home() {
 
       clearSavedDraft();
       setSubmitted(true);
+
+      // Copia a Google Drive: no debe romper el flujo de éxito si falla, la
+      // fuente de verdad ya quedó guardada en Supabase arriba.
+      try {
+        // basePath (next.config.ts) no se antepone solo a fetch() de cliente.
+        await fetch("/press-kit-web_formulario-DJ/api/drive-sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } catch (driveErr) {
+        console.error("[drive-sync]", driveErr);
+      }
     } catch (err: any) {
       setError(err.message || "Error al enviar");
     }
